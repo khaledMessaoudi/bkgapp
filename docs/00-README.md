@@ -12,7 +12,7 @@ Fork: https://github.com/khaledMessaoudi/bkgapp
 | 05-backend-schema.md | Firestore, Storage layout, content JSON, Remote Config, RevenueCat, AdMob |
 | 06-implementation-plan.md | Phased plan with concrete tasks and verification commands |
 | tasks/phase-N-*.md | One task brief per phase, handed to Claude Code ("Read docs/tasks/<file> and do it") |
-| CHANGES.md | Every deviation from upstream (created in Phase 2) |
+| CHANGES.md | Every deviation from upstream |
 | ../CLAUDE.md | Context file for Claude Code (put at repo root) |
 
 ## Decisions log

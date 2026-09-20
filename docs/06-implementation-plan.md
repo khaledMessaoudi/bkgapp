@@ -16,8 +16,8 @@ Rule of the project: **change as little upstream code as possible**. Every devia
 Exit: demo app runs on your phone. Do not proceed until this works.
 
 ## Phase 2 — Understand the content pipeline (1–2 days, mostly reading) ← current · brief: `docs/tasks/phase-2-content-pipeline.md`
-- [ ] Read `service/service-export-remoteapi/*` (`Constant.kt`, `RemoteApiStorageManager.kt`, `RemoteApiExportSpec.kt`) and `shared/data/remoteendpoint`, `mediamap*`, `FirebaseStorageDownloader` implementations.
-- [ ] Fill in the TBDs in `05-backend-schema.md` §3: exact media bucket sizes, what `c` kind is, how the app resolves `spec.json`, whether the tool generates variants + blurhash or expects them pre-made.
+- [x] Read `service/service-export-remoteapi/*` (`Constant.kt`, `RemoteApiStorageManager.kt`, `RemoteApiExportSpec.kt`) and `shared/data/remoteendpoint`, `mediamap*`, `FirebaseStorageDownloader` implementations.
+- [x] Fill in the TBDs in `05-backend-schema.md` §3: exact media bucket sizes, what `c` kind is, how the app resolves `spec.json`, whether the tool generates variants + blurhash or expects them pre-made.
 - [ ] Decide: extend the export tool, or write `tools/content_build.py` (Pillow + blurhash) that takes `content/<collection>/<wallpaper>.png` + a `content.yaml` and emits the `api/<version>/` folder.
 - [ ] Prototype with 3 of your own wallpapers → run through the tool → load in the app from local/bundled data.
 Exit: your own 3 wallpapers show in the demo app.

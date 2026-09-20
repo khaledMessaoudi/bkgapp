@@ -4,7 +4,7 @@ Android wallpaper app built on a fork of panels-art/WallApp (Kotlin Multiplatfor
 
 ## Hard rules
 - Android only. Never build or fix `app/ios`, `app/desktop`, `baselineprofile` unless asked.
-- Minimal diff. Do not refactor, reformat, or "modernize" upstream code beyond the task. Log every upstream deviation in `CHANGES.md`.
+- Minimal diff. Do not refactor, reformat, or "modernize" upstream code beyond the task. Log every upstream deviation in `docs/CHANGES.md`.
 - Do not bump Kotlin / AGP / Compose / Ktor / Koin versions unless the task is explicitly a dependency upgrade.
 - Keep ViewModels and data layer untouched during UI work; UI tasks edit `shared/presentation/*` only.
 - Never commit secrets: `google-services.json` (prod), keystores, `keystore.properties`, RevenueCat/AdMob keys → build config from gitignored properties.
