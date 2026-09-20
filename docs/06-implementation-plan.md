@@ -19,7 +19,7 @@ Exit: demo app runs on your phone. Do not proceed until this works.
 - [x] Read `service/service-export-remoteapi/*` (`Constant.kt`, `RemoteApiStorageManager.kt`, `RemoteApiExportSpec.kt`) and `shared/data/remoteendpoint`, `mediamap*`, `FirebaseStorageDownloader` implementations.
 - [x] Fill in the TBDs in `05-backend-schema.md` §3: exact media bucket sizes, what `c` kind is, how the app resolves `spec.json`, whether the tool generates variants + blurhash or expects them pre-made.
 - [x] Decide: **`tools/content_build.py`** (Pillow + blurhash), built and self-tested; the Kotlin export tool stays untouched as the encrypt+upload step. See `tools/README.md`.
-- [ ] Prototype with 3 of your own wallpapers → run through the tool → load in the app from local/bundled data.
+- [x] Prototype run end to end against the Firebase Storage emulator (3 placeholder wallpapers): built, encrypted, uploaded, feed and wallpaper detail render on device. Swap in real wallpapers to close this out. See `tools/README.md`.
 Exit: your own 3 wallpapers show in the demo app.
 
 ## Phase 3 — Rebrand + own Firebase (1–2 days)

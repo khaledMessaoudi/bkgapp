@@ -59,6 +59,13 @@ PROFILE_SLOTS = ("as", "am", "e")
 
 PROFILE_SIZES = {"as": 168, "am": 288}  # 56.dp / 96.dp at 3x
 
+# WallpaperCategoryType.fromName() crashes on anything else.
+CATEGORY_TYPES = ("Collection", "Singles")
+# WallpaperCategory.init requires product ids for a Collection, and
+# splitByCategoryType() only treats a category as singles if the id ends with this.
+SINGLES_ID_SUFFIX = "~singles"
+PRODUCT_ID_KEYS = ("appStore", "playStore", "revenueCat")
+
 # NetworkSocialLinks — anything else is dropped by ignoreUnknownKeys, so reject it here.
 SOCIAL_KEYS = {"facebook", "instagram", "shop", "tiktok", "twitter", "website", "youtube"}
 
@@ -367,12 +374,38 @@ class Builder:
             if artist_id not in artists_by_id:
                 raise SystemExit(f"collection {spec['id']}: unknown artist {spec['artist']}")
             category_id = f"{spec['artist']}~{spec['id']}"
+            category_type = spec.get("type", "Collection")
+            if category_type not in CATEGORY_TYPES:
+                raise SystemExit(
+                    f"collection {spec['id']}: type must be one of {list(CATEGORY_TYPES)}"
+                )
+            product_ids = spec.get("product_ids")
+            if category_type == "Collection":
+                missing = set(PRODUCT_ID_KEYS) - set(product_ids or {})
+                if missing:
+                    raise SystemExit(
+                        f"collection {spec['id']}: a Collection must carry product_ids "
+                        f"({', '.join(PRODUCT_ID_KEYS)}) — WallpaperCategory rejects it otherwise. "
+                        f"Missing {sorted(missing)}. Use type: Singles for ungated wallpapers."
+                    )
+            elif not category_id.endswith(SINGLES_ID_SUFFIX):
+                raise SystemExit(
+                    f"collection {spec['id']}: a Singles collection id must end with "
+                    f"{SINGLES_ID_SUFFIX!r} — rename it to 'singles'."
+                )
+            is_single = category_type == "Singles"
             remix_ids = []
 
             for item in spec["wallpapers"]:
                 path = self.root / item["file"]
                 stem = Path(item["file"]).stem
                 ref = f"{spec['id']}/{stem}"
+                if ref in wallpaper_ids:
+                    raise SystemExit(
+                        f"duplicate wallpaper reference {ref!r} — collection ids and file "
+                        f"names must be unique across artists, since folders refer to "
+                        f"wallpapers as '<collection id>/<file stem>'"
+                    )
                 wallpaper_id = f"{artist_id}_{_digest('wallpaper', ref)[:8]}"
                 wallpaper_ids[ref] = wallpaper_id
 
@@ -387,7 +420,7 @@ class Builder:
                         "type": item.get("type", "standard"),
                         "artistId": artist_id,
                         "categoryId": category_id,
-                        "isSingle": bool(spec.get("singles", False)),
+                        "isSingle": is_single,
                         "isDark": bool(item.get("dark", False)),
                         "aie": False,
                         "free": bool(item.get("free", False)),
@@ -415,6 +448,11 @@ class Builder:
                         "tags": _terms(item.get("tags", [])),
                         "colors": _terms(item.get("colors", [])),
                         "searchTerms": _terms(item.get("search_terms", [])),
+                        # NetworkSearchRemixMetadata requires both keys; description is nullable.
+                        "titleSuggestions": _terms(item.get("title_suggestions", [])),
+                        "description": (
+                            _terms([item["description"]])[0] if item.get("description") else None
+                        ),
                     }
                 )
                 remix_ids.append(wallpaper_id)
@@ -427,13 +465,13 @@ class Builder:
                 "id": category_id,
                 "label": spec["label"],
                 "artistId": artist_id,
-                "categoryType": spec.get("type", "Collection"),
+                "categoryType": category_type,
                 "previewRemixId": preview_remix_id,
                 "remixIds": remix_ids,
                 "slugs": [f"{spec['artist']}/{spec['id']}"],
             }
-            if spec.get("product_ids"):
-                category["purchasableProductIds"] = spec["product_ids"]
+            if product_ids:
+                category["purchasableProductIds"] = product_ids
             categories.append(category)
             artists_by_id[artist_id]["categoryIds"].append(category_id)
 
@@ -476,6 +514,14 @@ class Builder:
                 }
             )
 
+        # NetworkSearchMetadata requires all three lists and rejects unknown keys.
+        artist_metadata = [
+            {"artistId": a["id"], "names": _name_terms(a["label"])} for a in artists
+        ]
+        folder_metadata = [
+            {"folderId": f["id"], "names": _name_terms(f["title"])} for f in folders
+        ]
+
         content = {
             "wallpapers": wallpapers,
             "categories": categories,
@@ -484,7 +530,11 @@ class Builder:
         }
         if not categories_by_id:
             raise SystemExit("no collections defined")
-        return content, {"remixMetadata": metadata}
+        return content, {
+            "remixMetadata": metadata,
+            "artistMetadata": artist_metadata,
+            "folderMetadata": folder_metadata,
+        }
 
     def fill_media_fields(self, content: dict) -> None:
         """Blurhashes and dimensions are only known once the masters are opened,
@@ -509,6 +559,17 @@ class Builder:
             asset = by_id.get(str(wallpaper["dlm"]["hd"]))
             if asset:
                 wallpaper["dlm"]["w"], wallpaper["dlm"]["h"] = asset.width, asset.height
+
+
+def _name_terms(label: str) -> list[dict]:
+    """Searchable forms of a name: the whole thing, then each word."""
+    lowered = label.lower()
+    out = [{"t": lowered, "r": 1.0}]
+    words = [w for w in lowered.split() if w]
+    if len(words) > 1:
+        out += [{"t": w, "r": 0.99} for w in words]
+        out.append({"t": "".join(words), "r": 0.99})
+    return out
 
 
 def _terms(items) -> list[dict]:

@@ -56,7 +56,7 @@ So the full path is `<default Storage bucket>/api/v0/spec.json.data`. Only `Remo
 - Key file: `api/v0/key1`, uploaded **unencrypted**, fetched with `appendData = false`, content used verbatim (`RemoteApiSecretManagerDefault.getDeobfuscatedKey` is identity in the OSS build; Panels' obfuscation was not open-sourced). Offline/preset key: `bd446249-1c66-4a67-b49b-c605f922b5cb`.
 - Every other file is uploaded as `<name>.data` and requested with `.data` appended.
 
-> Assumption to verify before writing a Python encryptor: cryptography-kotlin's `AES.GCM` ciphertext layout is `nonce(12) || ciphertext || tag(16)`. Round-trip one file through `service-export-remoteapi` and decrypt it in Python to confirm.
+**Confirmed** (2026-09-20): cryptography-kotlin's `AES.GCM` ciphertext layout is `nonce(12) || ciphertext || tag(16)`. Pinned by `shared/core/security/src/commonTest/.../PythonCiphertextCompatTest.kt`, which decrypts a fixture produced by `tools/encrypt_api.py`, and verified end to end on device against the Storage emulator.
 
 ### 3.3 Layout
 ```
@@ -153,6 +153,20 @@ Verified against `demo-assets/api/99999999/content-1a` (200 wallpapers, 19 categ
 - `folders[].featureBannerImage` carries `w`/`h`; `profileImage` usually doesn't.
 
 v1 data: 1 artist (Khaled), N categories (collections), M folders (e.g. "Featured", "Abstract", "Minimal"), wallpapers with `free` set on ~20 %.
+
+## 4b. Runtime invariants the JSON must satisfy
+The models deserialize happily but the app then crashes or hangs unless the content also obeys these. All four were found by running our own export on a device; none are documented upstream.
+
+| Rule | Where | Symptom if broken |
+|---|---|---|
+| `categoryType` is exactly `Collection` or `Singles` | `WallpaperCategoryType.fromName` uses `first {}` | crash on load |
+| A `Collection` category must carry `purchasableProductIds` (all three ids) | `WallpaperCategory.init` `requireNotNull` | `IllegalArgumentException: Collection category "x" must have purchasableProductIds` |
+| A Singles category id must end with `~singles` | `splitByCategoryType()` | wallpapers silently never classified as singles |
+| A folder with id **`f~justadded`** must exist and hold wallpapers | `FolderDefinitions.FolderIdJustAdded` → `ShowcaseRepositoryDefault.signUpWallpapers` | first run sits on a blank white screen forever (`FirstRunViewState.Loading`) |
+
+The search index has its own: `NetworkSearchMetadata` uses `ignoreUnknownKeys = false` and requires `remixMetadata`, `artistMetadata` **and** `folderMetadata`; every remix entry needs `titleSuggestions` and `description` keys (`description` may be null). A missing key fails the whole file, `allDataLoaded` never goes true, and the app waits forever with no visible error.
+
+`tools/validate_content.py` checks all of these.
 
 ## 5. Remote Config keys (from `remoteconfig-api`) — launch defaults
 | Key | Launch value |

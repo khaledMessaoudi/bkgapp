@@ -181,6 +181,46 @@ def main() -> int:
             if image:
                 check_blurhash(report, image.get("blurHash", ""), f"{where}.{key}")
 
+    # NetworkSearchMetadata requires all three lists, rejects unknown keys, and every
+    # remix entry must carry titleSuggestions and description (nullable but present).
+    for key in ("remixMetadata", "artistMetadata", "folderMetadata"):
+        report.check(key in search, f"search index: missing {key!r}")
+    required_remix_keys = {
+        "remixId", "artistNames", "title", "collectionTitle", "styles", "tags",
+        "colors", "searchTerms", "titleSuggestions", "description",
+    }
+    for entry in search.get("remixMetadata", []):
+        missing_keys = required_remix_keys - set(entry)
+        report.check(
+            not missing_keys,
+            f"search entry {entry.get('remixId')}: missing {sorted(missing_keys)}",
+        )
+        report.check(
+            not (set(entry) - required_remix_keys),
+            f"search entry {entry.get('remixId')}: unknown keys "
+            f"{sorted(set(entry) - required_remix_keys)}",
+        )
+    report.check(
+        {a["artistId"] for a in search.get("artistMetadata", [])} == set(artists),
+        "search index: artistMetadata does not cover every artist",
+    )
+    report.check(
+        {f["folderId"] for f in search.get("folderMetadata", [])}
+        == {f["id"] for f in content["folders"]},
+        "search index: folderMetadata does not cover every folder",
+    )
+
+    # FolderDefinitions.FolderIdJustAdded is hardcoded: ShowcaseRepositoryDefault takes the
+    # first-run carousel from it, and FirstRunViewModel stays on a blank Loading screen while
+    # that list is empty.
+    just_added = next((f for f in content["folders"] if f["id"] == "f~justadded"), None)
+    report.check(just_added is not None, "no f~justadded folder — first run will hang on a blank screen")
+    if just_added is not None:
+        report.check(
+            bool(just_added.get("remixIds")),
+            "f~justadded has no wallpapers — first run will hang on a blank screen",
+        )
+
     indexed = {entry["remixId"] for entry in search["remixMetadata"]}
     missing_index = set(wallpapers) - indexed
     report.check(not missing_index, f"search index missing {len(missing_index)} wallpapers")

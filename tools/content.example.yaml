@@ -24,7 +24,12 @@ collections:
   - id: minimal
     label: Minimal
     artist: khaled
-    type: Collection       # or Singles
+    # Collection requires product_ids below; use "Singles" (and id: singles) for ungated wallpapers.
+    type: Collection
+    product_ids:
+      appStore: com.bkgapp.collection.minimal
+      playStore: collection_minimal
+      revenueCat: minimal
     preview: dune          # file stem of the wallpaper used as the collection cover
     wallpapers:
       - file: wallpapers/minimal/dune.png
@@ -40,10 +45,12 @@ collections:
         tags: [minimal, dark]
 
 folders:
-  - id: featured
-    title: Featured
-    title_two_lines: Featured
-    profile: folders/featured/profile.png
-    banner: folders/featured/banner.png
+  # The app hardcodes f~justadded (FolderDefinitions) and builds the first-run carousel
+  # from it — without this folder the app opens on a blank screen.
+  - id: justadded
+    title: Just Added
+    title_two_lines: Just Added
+    profile: folders/justadded/profile.png
+    banner: folders/justadded/banner.png
     collections: [minimal]
-    wallpapers: [minimal/dune]   # "<collection id>/<file stem>"
+    wallpapers: [minimal/dune, minimal/slate]   # "<collection id>/<file stem>"

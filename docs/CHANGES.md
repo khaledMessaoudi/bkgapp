@@ -5,7 +5,8 @@ Every change to code inherited from [panels-art/WallApp](https://github.com/pane
 Format: `- <date> · <area> — <what and why> (<commit or file>)`
 
 ## Deviations
-_None yet — Phase 2 is read-only investigation._
+- 2026-09-20 · security — added `shared/core/security/src/commonTest/.../PythonCiphertextCompatTest.kt`, pinning the AES-GCM ciphertext layout that `tools/encrypt_api.py` produces. New test file, no upstream code touched. Run with `./gradlew :shared:core:security:desktopTest`.
+- 2026-09-20 · **uncommitted, local only** — `RUN_FIREBASE_ON_LOCAL_EMULATORS` in `shared/data/account-api/.../AccountManager.kt` must be flipped to `true` to run against the Storage emulator. Deliberately not committed: `true` would break builds pointing at real Firebase. See `tools/README.md`.
 
 ## Non-deviations (ours, not upstream code)
 - 2026-09-20 · build — reduced Gradle/Kotlin daemon heap in `gradle.properties` to fit available RAM (`eda9372`). Local build config, not app behaviour.
