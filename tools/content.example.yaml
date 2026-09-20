@@ -1,0 +1,49 @@
+# Example catalogue for tools/content_build.py.
+# Paths are relative to this file. Copy it to content/content.yaml and edit.
+
+version: "20260920"        # becomes api/<version>/ — bump when you re-export
+content_suffix: "1a"       # cache-buster in the filenames; bump on every content change
+media_base_url: "https://storage.googleapis.com/bkgapp-media"
+encryption_key: "bd446249-1c66-4a67-b49b-c605f922b5cb"  # written to key1
+
+platforms: ["c"]           # Android only; add "i" if iOS is ever built
+# buckets: ["p~a~n"]       # omit for all 9 device buckets — a subset builds much faster
+
+preview_quality: 85
+download_quality: 90
+
+artists:
+  - id: khaled
+    label: Khaled
+    profile: artists/khaled/profile.png
+    banner: artists/khaled/banner.png
+    social:
+      instagram: https://instagram.com/…
+
+collections:
+  - id: minimal
+    label: Minimal
+    artist: khaled
+    type: Collection       # or Singles
+    preview: dune          # file stem of the wallpaper used as the collection cover
+    wallpapers:
+      - file: wallpapers/minimal/dune.png
+        label: Dune
+        dark: false
+        free: true
+        tags: [minimal, warm, { gradient: 0.8 }]
+        colors: [sand]
+        search_terms: ["minimal wallpaper", "beige wallpaper"]
+      - file: wallpapers/minimal/slate.png
+        label: Slate
+        dark: true
+        tags: [minimal, dark]
+
+folders:
+  - id: featured
+    title: Featured
+    title_two_lines: Featured
+    profile: folders/featured/profile.png
+    banner: folders/featured/banner.png
+    collections: [minimal]
+    wallpapers: [minimal/dune]   # "<collection id>/<file stem>"

@@ -70,3 +70,7 @@ fastlane/readme.md
 .DS_Store
 main/release/output.json
 /.gradle-xcode
+
+# Python (tools/)
+__pycache__/
+*.pyc

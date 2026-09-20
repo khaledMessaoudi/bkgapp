@@ -148,7 +148,7 @@ NetworkPurchasableProductIds(appStore, playStore, revenueCat)
 ```
 Verified against `demo-assets/api/99999999/content-1a` (200 wallpapers, 19 categories, 10 artists, 1 folder):
 - `dlm` is `{"hd": <int>, "sd": <int>, "w": <int>, "h": <int>}` — media ids as **numbers**, and `w`/`h` are the master's dimensions.
-- `NetworkMedia.id` is a `Long` in Kotlin but appears **quoted** in the JSON (`"id": "962966773"`), and media map keys are strings too. Serialization accepts both; emit whichever, stay consistent.
+- `NetworkMedia.id` is a `Long` and appears **quoted** in the demo JSON (`"id": "962966773"`). Both `NetworkContent` and `NetworkMediaData` use `Json { ignoreUnknownKeys = true }` without `isLenient`, which rejects a quoted number — so **emit media ids unquoted**. Media map keys stay strings (JSON object keys always are; `Map<Long, …>` decodes them fine).
 - `type` on a wallpaper is a string (`"parallax"` in the demo); `collectionLabel` is the collection's label repeated on the wallpaper (`"Singles"`).
 - `folders[].featureBannerImage` carries `w`/`h`; `profileImage` usually doesn't.
 
@@ -239,7 +239,7 @@ Media map file, per bucket:
 ```
 
 ### 10.4 Ids and naming
-| Thing | Shape in the demo export | Rule for us |
+| Thing | Shape in the demo export | Rule for us (implemented in `tools/content_build.py`) |
 |---|---|---|
 | artist id | `a~dark` | `a~<slug>` |
 | wallpaper id | `a~dark_1a6be1c2` | `<artistId>_<8 hex of a stable hash>` |
@@ -248,10 +248,10 @@ Media map file, per bucket:
 | media id | `962966773` | stable positive integer (hash of the source file path), **unique across all media** |
 | slug | `w/2QR`, `dark/singles` | wallpapers `w/<short>`, collections `<artist>/<collection>` |
 
-Media ids are numbers in `dlm` (`{"hd": 2077508249, "sd": …, "w": 950, "h": 720}`) but **strings** in `previews.standard[].id`, `profileImage.id` and `featureBannerImage.id`, and strings as media map keys. `NetworkMedia.id` is a `Long`, so keep them plain integers with no leading zeros. Ids must be stable across rebuilds or every client cache is invalidated.
+Media ids are numbers in `dlm` (`{"hd": 2077508249, "sd": …, "w": 950, "h": 720}`) but **strings** in `previews.standard[].id`, `profileImage.id` and `featureBannerImage.id`, and strings as media map keys. `NetworkMedia.id` is a `Long`, so emit plain unquoted integers (see §4 — quoted ids fail to decode). Ids must be stable across rebuilds or every client cache is invalidated.
 
 ### 10.5 Blurhash
-Every `NetworkMedia` (`previews.standard[]`, `profileImage`, `featureBannerImage`) carries a `blurHash` string. The app only **decodes** (`core/common/.../image/hash/blur/`), so the tool must generate them — standard blurhash, 4×3 components as in the demo (`U03baYj[Ioj[j[fQfQfQD%fQt7fQj[fQfQfQ`), computed from a small downscale of the master. `dlm` media (download files) have no blurhash.
+Every `NetworkMedia` (`previews.standard[]`, `profileImage`, `featureBannerImage`) carries a `blurHash` string. The app only **decodes** (`core/common/.../image/hash/blur/`), so the tool must generate them — standard blurhash, 4×4 components as in the demo (36 characters) (`U03baYj[Ioj[j[fQfQfQD%fQt7fQj[fQfQfQ`), computed from a small downscale of the master. `dlm` media (download files) have no blurhash.
 
 ### 10.6 Formats
 Nothing in the load or export path requires PNG. The demo is PNG only because its media were PNG; the export tool treats files as opaque bytes and doesn't touch media at all. On Android, Coil 2.7 decodes WebP natively, `ImageHostPlatformConfigAndroid.inAppComposeImageHostFormat = WebP` and `galleryImageHostFormat = WebP` (AVIF is disabled upstream: "too unreliable", issue #851). `Bitmap.CompressFormat.PNG` appears only in `BitmapUtils.saveBitmap`, which is the local disk cache, not the network format. **Ship WebP.**
