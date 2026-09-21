@@ -1,6 +1,6 @@
 package wallapp.service
 
 object Constant {
-    val AppFirebasePath = "https://panels-oss.firebaseio.com/"
-    val AppStorageBucketName = "panels-oss.firebasestorage.app"
+    val AppFirebasePath = "https://superwall-c01dc.firebaseio.com/"
+    val AppStorageBucketName = "superwall-c01dc.firebasestorage.app"
 }

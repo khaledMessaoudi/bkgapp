@@ -58,7 +58,7 @@ android {
             this.versionCode = versionCode
             this.versionName = versionName
 
-            applicationId = "com.example.wallapp"
+            applicationId = "com.bkg.superwall"
             dimension = "client"
         }
     }

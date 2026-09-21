@@ -1,7 +1,7 @@
 const assert = require('assert');
 const firebase = require('@firebase/testing');
 
-const MY_PROJECT_ID = "panels-oss";
+const MY_PROJECT_ID = "superwall-c01dc";
 const myId = "user_abc";
 const theirId = "user_xyz";
 const myAuth = { uid: myId, email: "testtest@testing1.com" };

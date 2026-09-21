@@ -22,7 +22,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-DEFAULT_BUCKET = "panels-oss.firebasestorage.app"  # google-services.json storage_bucket
+DEFAULT_BUCKET = "superwall-c01dc.firebasestorage.app"  # google-services.json storage_bucket
 DEFAULT_HOST = "http://127.0.0.1:9199"
 
 
