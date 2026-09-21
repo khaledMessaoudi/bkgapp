@@ -5,6 +5,7 @@ Every change to code inherited from [panels-art/WallApp](https://github.com/pane
 Format: `- <date> · <area> — <what and why> (<commit or file>)`
 
 ## Deviations
+- 2026-09-21 · performance — removed `android:largeHeap="true"` from `app/android/src/main/AndroidManifest.xml` and lowered the Coil memory cache from 50% to 25% of the app memory budget in `shared/di/di-base/.../Factory.android.kt`. The app was using 400+ MB on a Samsung. Trade-off: previously viewed wallpapers reload from disk more often.
 - 2026-09-20 · security — added `shared/core/security/src/commonTest/.../PythonCiphertextCompatTest.kt`, pinning the AES-GCM ciphertext layout that `tools/encrypt_api.py` produces. New test file, no upstream code touched. Run with `./gradlew :shared:core:security:desktopTest`.
 - 2026-09-20 · **uncommitted, local only** — `RUN_FIREBASE_ON_LOCAL_EMULATORS` in `shared/data/account-api/.../AccountManager.kt` must be flipped to `true` to run against the Storage emulator. Deliberately not committed: `true` would break builds pointing at real Firebase. See `tools/README.md`.
 

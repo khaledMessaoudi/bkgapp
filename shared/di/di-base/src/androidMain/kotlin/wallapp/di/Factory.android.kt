@@ -398,7 +398,7 @@ object FactoryAndroid : FactoryCommon() {
             .okHttpClient(okHttpClient)
             .memoryCache {
                 MemoryCache.Builder(context)
-                    .maxSizePercent(0.5)
+                    .maxSizePercent(0.25)
                     .build()
             }
             .diskCache {
