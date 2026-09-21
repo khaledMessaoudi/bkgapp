@@ -23,6 +23,37 @@ after(async () => {
     await firebase.clearFirestoreData({ projectId: MY_PROJECT_ID });
 });
 
+describe("Content Config Security Rules", () => {
+
+    // bkgapp: the content API encryption key lives in Firestore instead of Cloud Storage,
+    // which needs the paid Blaze plan. Same guarantee as upstream's storage.rules gave:
+    // readable by any signed-in user, never writable from a client.
+    const keyDoc = "content_config/encryption";
+
+    async function seedKey() {
+        const admin = getAdminFirestore();
+        await admin.doc(keyDoc).set({ key: "obfuscated-key-value" });
+    }
+
+    it("lets a signed-in user read the content key", async () => {
+        await seedKey();
+        const db = getFirestore(myAuth);
+        await firebase.assertSucceeds(db.doc(keyDoc).get());
+    });
+
+    it("denies an unauthenticated read of the content key", async () => {
+        await seedKey();
+        const db = getFirestore(null);
+        await firebase.assertFails(db.doc(keyDoc).get());
+    });
+
+    it("denies a client write of the content key", async () => {
+        await seedKey();
+        const db = getFirestore(myAuth);
+        await firebase.assertFails(db.doc(keyDoc).set({ key: "attacker" }));
+    });
+});
+
 describe("User Profile Security Rules", () => {
 
     // Helper function to initialize user document

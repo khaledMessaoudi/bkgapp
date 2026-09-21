@@ -5,6 +5,14 @@ service cloud.firestore {
     // match /{document=**} {
     //   allow read, write: if true;
     // }
+    // Content API encryption key (bkgapp: replaces upstream's `key1` in Cloud Storage, which
+    // needs the paid Blaze plan). Readable by any signed-in user, anonymous included; never
+    // writable from a client - it is published with the content export.
+    match /content_config/{document} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     match /users/{userId} {
       // all fields in document (update as we add more fields)
       // [

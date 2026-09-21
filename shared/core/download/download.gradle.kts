@@ -18,6 +18,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.gitlive.firebase.firestore)
                 implementation(libs.gitlive.firebase.storage)
 
                 api(libs.ktor.client.core)

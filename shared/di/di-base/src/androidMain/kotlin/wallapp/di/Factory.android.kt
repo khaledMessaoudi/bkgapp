@@ -85,8 +85,12 @@ import wallapp.device.refreshrate.DeviceRefreshRateSystemVariable
 import wallapp.device.state.DeviceState
 import wallapp.device.state.DeviceStateMock
 import wallapp.device.state.DeviceStateSystem
+import wallapp.download.CONTENT_HTTP_BASE_URL
+import wallapp.download.CONTENT_KEY_FROM_FIRESTORE
 import wallapp.download.FirebaseStorageDownloader
 import wallapp.download.FirebaseStorageDownloaderAndroid
+import wallapp.download.FirestoreKeyApiDownloader
+import wallapp.download.HttpApiDownloader
 import wallapp.download.UrlDownloader
 import wallapp.download.UrlDownloaderAndroid
 import wallapp.entitlement.EntitlementRepository
@@ -813,6 +817,10 @@ object FactoryAndroid : FactoryCommon() {
     }
 
     override fun firebaseStorageDownloader(scope: Scope): FirebaseStorageDownloader {
+        if (CONTENT_HTTP_BASE_URL.isNotBlank()) {
+            val http = HttpApiDownloader(scope.get<UrlDownloaderAndroid>(), CONTENT_HTTP_BASE_URL)
+            return if (CONTENT_KEY_FROM_FIRESTORE) FirestoreKeyApiDownloader(http) else http
+        }
         return when (remoteEndpointMode) {
             RemoteEndpointMode.Firebase -> scope.get<FirebaseStorageDownloaderAndroid>()
             RemoteEndpointMode.FirebaseAdmin -> scope.get<FirebaseStorageDownloaderAndroid>()
